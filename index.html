@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hobo Bags × Redo — Implementation Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page-bg: #F7F6F4;
+    --surface-bg: #FFFFFF;
+    --text-primary: #2A2A28;
+    --text-secondary: #5A5955;
+    --divider: #E4E3DF;
+    --orange: #FF4405;
+    --blue: #088AB2;
+    --green-bg: #E7F4EC;
+    --green-text: #1E6B3F;
+    --progress-bg: #E0F2FE;
+    --progress-text: #075985;
+    --pending-bg: #F0EFEC;
+    --pending-text: #5A5955;
+    --tbd-bg: #FFF3E0;
+    --tbd-text: #9A3412;
+    --blue-bg: #E0F2FE;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--text-primary);
+    line-height: 1.6; padding: 48px 24px;
+  }
+  .container { max-width: 980px; margin: 0 auto; }
+
+  h1, h2, h3, h4 { font-family: 'Instrument Serif', serif; font-weight: 400; font-synthesis: none; }
+  h1 { font-size: 2.5rem; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); }
+  h2 {
+    font-size: 1.75rem; line-height: 1.25; letter-spacing: -0.01em; color: var(--text-primary);
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--divider);
+  }
+  h3 { font-size: 1.5rem; line-height: 1.3; color: var(--text-primary); }
+  p { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9375rem; line-height: 1.7; }
+  strong { color: var(--text-primary); font-weight: 600; }
+
+  .header { margin-bottom: 48px; }
+  .logo { height: 28px; margin-bottom: 48px; opacity: 0.85; }
+  .subtitle {
+    font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500;
+    color: var(--text-secondary); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 12px;
+  }
+
+  .section { margin-bottom: 48px; }
+  .section-number {
+    font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; display: block;
+  }
+  .intro { background: var(--surface-bg); border-left: 3px solid var(--orange); padding: 32px; margin-bottom: 8px; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* ---- Flow ---- */
+  .flow {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+    gap: 4px; margin: 28px 0 4px;
+  }
+  .parallel-box {
+    position: relative; border: 1.5px dashed #D8C3B0; border-radius: 16px;
+    padding: 28px 18px 18px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .parallel-tag {
+    position: absolute; top: -11px; left: 20px; background: var(--page-bg); padding: 0 10px;
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--orange);
+  }
+  .node-card {
+    background: var(--surface-bg); border: 1.5px solid var(--divider); border-radius: 11px;
+    padding: 15px 18px; cursor: pointer; text-align: left; font-family: 'Inter', sans-serif;
+    width: 232px; transition: all .16s ease; display: flex; flex-direction: column; gap: 8px;
+  }
+  .node-card:hover { border-color: var(--orange); }
+  .node-card.active { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,68,5,.12); }
+  .nc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .nc-title { font-size: 1.25rem; font-weight: 400; color: var(--text-primary); font-family: 'Instrument Serif', serif; line-height: 1.1; }
+  .node-card.active .nc-title { color: var(--orange); }
+  .nc-date { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+  .nc-status {
+    font-size: 0.625rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 3px 9px; align-self: flex-start;
+  }
+  .nc-status.progress { background: var(--progress-bg); color: var(--progress-text); }
+  .nc-status.complete { background: var(--green-bg); color: var(--green-text); }
+  .nc-status.milestone { background: var(--blue-bg); color: var(--progress-text); }
+
+  .sync-card { border-color: var(--blue); background: #FBFEFF; }
+  .sync-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(8,138,178,.14); }
+  .sync-card .nc-title { color: var(--blue); }
+
+  .arrow { color: #C9C7C1; font-size: 1.7rem; padding: 0 10px; flex-shrink: 0; line-height: 1; }
+
+  .flow-hint {
+    text-align: center; font-size: 0.8125rem; color: var(--text-secondary);
+    font-style: italic; margin: 20px 0 0;
+  }
+
+  /* ---- Detail panel ---- */
+  .panel { background: var(--surface-bg); border-top: 3px solid var(--orange); margin-top: 28px; animation: fade .25s ease; }
+  .panel.sync { border-top-color: var(--blue); }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .panel-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 28px 32px 8px; }
+  .panel-step {
+    font-family: 'Inter', sans-serif; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #fff; background: var(--text-primary); padding: 5px 11px;
+  }
+  .panel.sync .panel-step { background: var(--blue); }
+  .panel-objective { padding: 4px 32px 20px; font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.7; }
+
+  .panel-meta { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider); }
+  .meta-cell { padding: 18px 32px; border-right: 1px solid var(--divider); }
+  .meta-cell:last-child { border-right: none; }
+  .meta-label { font-size: 0.625rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .meta-value { font-size: 0.875rem; color: var(--text-primary); line-height: 1.5; }
+  .meta-value .sub { color: var(--text-secondary); }
+  .meta-value .tbd { color: var(--tbd-text); font-weight: 600; }
+  .meta-value .date { color: var(--text-primary); font-weight: 600; }
+
+  .checklist-wrap { padding: 24px 32px 30px; }
+  .checklist-label { font-size: 0.625rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+  ul.checklist { list-style: none; }
+  ul.checklist li {
+    display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start;
+    padding: 12px 0; border-bottom: 1px solid var(--divider); font-size: 0.9375rem; color: var(--text-primary); line-height: 1.55;
+  }
+  ul.checklist li:last-child { border-bottom: none; }
+  .check-box { width: 18px; height: 18px; border: 1.5px solid var(--divider); border-radius: 3px; margin-top: 2px; flex-shrink: 0; position: relative; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .check-box:hover { border-color: var(--green-text); }
+  .check-box.done { background: var(--green-text); border-color: var(--green-text); }
+  .check-box.done::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .item-owner { display: inline-block; font-size: 0.75rem; font-weight: 600; color: var(--blue); margin-top: 3px; }
+  .item-owner .role { color: var(--text-secondary); font-weight: 400; }
+  .badge { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 7px; margin-left: 8px; white-space: nowrap; vertical-align: middle; }
+  .badge.done { background: var(--green-bg); color: var(--green-text); }
+  .badge.tbd { background: var(--tbd-bg); color: var(--tbd-text); }
+  .badge.due { background: var(--blue-bg); color: var(--progress-text); }
+  .panel-note { padding: 0 32px 28px; font-size: 0.8125rem; color: var(--text-secondary); font-style: italic; }
+
+  /* ---- Reference table ---- */
+  .table-wrapper { background: var(--surface-bg); margin-bottom: 8px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  thead th { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); text-align: left; padding: 14px 20px; border-bottom: 1px solid var(--divider); white-space: nowrap; }
+  tbody td { padding: 12px 20px; border-bottom: 1px solid var(--divider); color: var(--text-primary); vertical-align: top; line-height: 1.5; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.highlight-row td { background: #FFF6F0; }
+  td.secondary { color: var(--text-secondary); }
+  .note { font-size: 0.8125rem; color: var(--text-secondary); font-style: italic; margin-top: 12px; }
+
+  @media (max-width: 760px) {
+    .flow { flex-direction: column; }
+    .arrow { transform: rotate(90deg); padding: 6px 0; }
+    .parallel-box { width: 100%; }
+    .node-card { width: 100%; }
+    .panel-meta { grid-template-columns: 1fr; }
+    .meta-cell { border-right: none; border-bottom: 1px solid var(--divider); }
+    .meta-cell:last-child { border-bottom: none; }
+    h1 { font-size: 1.875rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjI1NSIgdmlld0JveD0iMCAwIDgwMCAyNTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNODAwIDBIMFYyNTVIODAwVjBaTTc0NS41NyAxMjYuMTQ5Qzc0NS41NyAxMzguMjM0IDc0My4wODggMTY1LjQ3MiA3MTUuNzkgMTg0LjA3OEM3MDguNzI3IDE4OC44NzQgNzAxLjg1NSAxOTIuMTM1IDY5My44MzcgMTk0LjQzN0M2ODYuMDExIDE5Ni43MzkgNjc0LjE3NSAxOTkuMDQgNjU1LjA4NSAxOTkuMDRDNjI2LjQ1MSAxOTkuMDQgNjA5LjA3OSAxOTIuNzEgNTk4LjE5OCAxODYuMTg4QzU5NC41NzEgMTg0LjA3OCA1ODcuODkgMTc5LjY2NyA1ODEuMjA5IDE3MS42MUM1NjYuODkxIDE1NC4xNTUgNTY2LjMxOSAxMzYuNTA3IDU2Ni4zMTkgMTI3Ljg3NkM1NjYuMzE5IDkzLjczMTggNTg0LjQ1NCA3Ni42NTk5IDU5NS41MjYgNjkuMTc5QzYwNi45NzkgNjEuMzE0NCA2MjMuMzk3IDU0LjQwODkgNjUzLjU1OCA1NC4wMjUzQzY1OS42NjcgNTQuMDI1MyA2NjUuNTg1IDU0LjAyNTMgNjcxLjY5MyA1NC42MDA4QzcwNy4zOTEgNTcuNDc4IDcyMy45OTkgNzEuNjcyNiA3MzMuMzUzIDg1LjA5OTlDNzM3Ljc0MyA5MS42MjE4IDc0NS41NyAxMDUuNjI1IDc0NS41NyAxMjYuMTQ5Wk02OTUuOTM3IDEyNi41MzNDNjk1LjkzNyAxMDkuMjY5IDY4OC42ODMgOTguMzM1NCA2ODMuNzIgOTMuOTIzNkM2ODEuODExIDkyLjAwNTQgNjc3LjIyOSA4OC41NTI3IDY3MC43MzkgODYuMjUwOUM2NjcuMzAzIDg1LjA5OTkgNjYzLjY3NiA4NC4xNDA5IDY1Ni40MjIgODQuMTQwOUM2NTAuMTIyIDg0LjE0MDkgNjQ0Ljk2OCA4NC43MTYzIDYzOS4wNSA4Ny4yMUM2MjMuMjA2IDkzLjkyMzYgNjE1Ljk1MiAxMTAuMjI4IDYxNS45NTIgMTI2LjcyNUM2MTUuOTUyIDEyOS4yMTggNjE2LjE0MyAxMzYuMTI0IDYxOC42MjQgMTQzLjIyMUM2MjYuNjQyIDE2Ny4zOSA2NDguNDA0IDE2OS4xMTcgNjU2LjYxMiAxNjkuMTE3QzY1OC45MDMgMTY5LjExNyA2NjcuNDk0IDE2OS4xMTcgNjc0Ljc0OCAxNjUuODU2QzY4OS44MjggMTU5LjE0MiA2OTUuOTM3IDE0MS44NzggNjk1LjkzNyAxMjYuNTMzWk01NTMuMTA2IDEyOC4yNTlDNTUzLjEwNiAxMzQuMzk3IDU1Mi41MzMgMTU2LjQ1NyA1MzguNzg5IDE3Mi41NjlDNTM2LjQ5OCAxNzUuNDQ3IDUzMS43MjUgMTgwLjI0MiA1MjMuNzA4IDE4NC44NDZDNTIwLjg0NCAxODYuMzggNTE0LjczNiAxODkuNjQxIDUwNi41MjcgMTkxLjc1MUM0OTkuNjU1IDE5My40NzggNDk0LjY5MSAxOTQuNDM3IDQ4MS4xMzggMTk0LjQzN0gzOTUuNjE2VjU5LjAxMjdINDcyLjE2NkM0NzcuNTExIDU5LjAxMjcgNDgyLjg1NiA1OS4yMDQ1IDQ4OC4yMDEgNTkuNTg4MUM1MTkuNTA4IDYyLjI3MzYgNTMzLjI1MyA3NS41MDkxIDU0MS4yNyA4Ny4yMUM1NTIuNzI0IDEwMy43MDYgNTUzLjEwNiAxMjAuOTcgNTUzLjEwNiAxMjguMjU5Wk01MDUuOTU0IDEyNy4xMDhDNTA1Ljk1NCAxMjIuODg4IDUwNS4zODIgMTA3LjczNSA0OTMuNTQ2IDk4LjUyNzNDNDgzLjgzNiA5MS4xNjM2IDQ3MC4yNTggOTEuMjIwNCA0NjYuMzExIDkxLjIzNjlDNDY2LjE0NiA5MS4yMzc2IDQ2NS45OTcgOTEuMjM4MiA0NjUuODY2IDkxLjIzODJINDQyLjc2OFYxNjMuNzQ2SDQ2Ny4zOTNDNDcwLjA2NiAxNjMuNzQ2IDQ3Mi45MjkgMTYzLjU1NCA0NzUuNzkzIDE2My4xN0M0OTIuNDAxIDE2MS4wNiA0OTguMzE5IDE1My41NzkgNTAxLjU2NCAxNDYuNjc0QzUwNS43NjMgMTM4LjA0MiA1MDUuOTU0IDEzMC43NTMgNTA1Ljk1NCAxMjcuMTA4Wk0yMjguNjg1IDE5NC40MzdIMzcyLjYyMVYxNjMuNzQ2SDI3Ni45ODJWMTQyLjA3SDM2My44MzlWMTExLjU3MUgyNzYuOTgyVjg5LjMySDM3MC45MDNWNTkuMDEyN0gyMjguNjg1VjE5NC40MzdaTTIwOS4xMDcgMTk0LjQzN0gxNTUuODQ3TDEyNy45NzYgMTQ1LjEzOUgxMDIuMzk2VjE5NC40MzdINTMuOTA4MlY1OS4wMTI3SDE1My4xNzRDMTcxLjMwOSA1OS4wMTI3IDE4OC42ODEgNjAuMzU1NCAxOTkuNTYyIDc3LjYxOTFDMjAyLjA0NCA4MS42NDczIDIwNi40MzQgODkuNzAzNyAyMDYuNDM0IDEwMS45OEMyMDYuNDM0IDEwOC4zMSAyMDUuMDk4IDEyNi4zNDEgMTg4LjEwOCAxMzUuNzRDMTg0Ljg2MyAxMzcuNjU4IDE4Mi4zODEgMTM4LjYxNyAxNzUuNTA5IDE0MC4zNDRMMjA5LjEwNyAxOTQuNDM3Wk0xNTguMzI4IDEwMi4xNzJDMTU4LjMyOCAxMDEuMDIxIDE1OC4xMzcgOTcuOTUxOSAxNTYuMjI4IDk1LjI2NjRDMTUyLjk4MyA5MC40NzA5IDE0Ny42MzggODkuNzAzNyAxNDIuNDg0IDg5LjcwMzdIMTAyLjM5NlYxMTQuNjRIMTM4LjY2NkMxNDcuODI5IDExNC42NCAxNTIuNjAxIDExMy40ODkgMTU1LjY1NiAxMDkuODQ1QzE1OC4xMzcgMTA2Ljc3NiAxNTguMzI4IDEwMy43MDYgMTU4LjMyOCAxMDIuMTcyWiIgZmlsbD0iIzE0MTQxNCIvPgo8L3N2Zz4K" alt="Redo" class="logo">
+    <h1>Hobo Bags × Redo — Implementation Plan</h1>
+    <p class="subtitle">Migration from Loop Returns &nbsp;|&nbsp; Updated June 30, 2026</p>
+  </header>
+
+  <section class="section">
+    <!-- Interactive flow -->
+    <div class="flow" id="flow">
+      <div class="parallel-box">
+        <span class="parallel-tag">In parallel · by Jul 8</span>
+        <button class="node-card active" data-idx="0">
+          <div class="nc-top"><span class="nc-title">Integrations</span><span class="nc-date">by Jul 8</span></div>
+          <span class="nc-status progress">In Progress</span>
+        </button>
+        <button class="node-card" data-idx="1">
+          <div class="nc-top"><span class="nc-title">Portal</span><span class="nc-date">by Jul 8</span></div>
+          <span class="nc-status progress">In Progress</span>
+        </button>
+      </div>
+      <span class="arrow">&rarr;</span>
+      <button class="node-card sync-card" data-idx="2">
+        <div class="nc-top"><span class="nc-title">Team Sync</span><span class="nc-date">Wed, Jul 8</span></div>
+        <span class="nc-status milestone">Readiness Check</span>
+      </button>
+      <span class="arrow">&rarr;</span>
+      <button class="node-card" data-idx="3">
+        <div class="nc-top"><span class="nc-title">CX Training</span><span class="nc-date">Jul 10</span></div>
+        <span class="nc-status progress">In Progress</span>
+      </button>
+    </div>
+    <p class="flow-hint">Select any phase to see its items and owners.</p>
+
+    <div id="panel"></div>
+  </section>
+
+  <!-- Reference table -->
+  <section class="section">
+    <span class="section-number">Reference</span>
+    <h2>Key Dates</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Milestone</th><th>Phase</th><th>Owner(s)</th><th>Date</th></tr></thead>
+        <tbody>
+          <tr><td><strong>CS Training</strong></td><td class="secondary">CX Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td>Completed June 17</td></tr>
+          <tr><td><strong>Ping ↔ Redo API working session</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu / Will Schaefermeyer</td><td>Completed June 30</td></tr>
+          <tr><td><strong>Integrations complete</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu / Will Schaefermeyer</td><td><strong>July 8</strong></td></tr>
+          <tr><td><strong>Portal complete</strong></td><td class="secondary">Portal</td><td class="secondary">Carole Van Over / Andrew Greenberg</td><td><strong>July 8</strong></td></tr>
+          <tr><td><strong>Team Sync — readiness check</strong></td><td class="secondary">All</td><td class="secondary">Full team</td><td style="color:var(--blue);font-weight:600;">Wed, July 8</td></tr>
+          <tr><td><strong>CX Training</strong></td><td class="secondary">CX Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
+          <tr class="highlight-row"><td><strong>Revised Go-Live</strong></td><td class="secondary">Post-training</td><td class="secondary">Redo + Hobo</td><td><span style="color:var(--tbd-text);font-weight:600;">TBD on team sync July 8</span></td></tr>
+          <tr><td><strong>Parallel Run (Loop + Redo)</strong></td><td class="secondary">Post-launch</td><td class="secondary">Carole Van Over / Alexis Smith</td><td>2–3 weeks after go-live</td></tr>
+          <tr><td><strong>Loop Contract Sunset</strong></td><td class="secondary">Final cutover</td><td class="secondary">Hobo</td><td>August 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">All dates are 2026. TBD items will be confirmed as remaining details are finalized.</p>
+  </section>
+
+</div>
+
+<script>
+const phases = [
+  {
+    key: "integrations", kind: "phase", step: "Track A — Parallel", title: "Integrations", panelStatus: "",
+    objective: "Align Redo's Loop-compatible API with Hobo's existing integration so returns, exchanges, upsells, and downsells map cleanly into Southware. The field-level adjustments below were scoped in the June 30 working session with Ping and are owned by Redo engineering. Runs in parallel with Portal; target completion July 8.",
+    meta: [
+      { label: "Hobo Owner", value: "Ping Bu <span class='sub'>— IT Developer</span>", sub: "Jon Stinnett — IT (support)" },
+      { label: "Redo Owner", value: "Will Schaefermeyer <span class='sub'>— Engineering</span>", sub: "Jordan Bleak / Hugh Roberts — coordination" },
+      { label: "Target", value: "<span class='date'>July 8, 2026</span> <span class='sub'>— in parallel with Portal</span>" }
+    ],
+    items: [
+      { t: "API key provisioned and schema confirmed compatible", owner: "Ping Bu & Will Schaefermeyer", done: true },
+      { t: "Instant exchanges configured and validated", owner: "Will Schaefermeyer", done: true },
+      { t: "Fix upsell/exchange outcome classification — upsell orders currently return \"exchange\" due to a fallback triggered by a $0 upsell amount", owner: "Will Schaefermeyer" },
+      { t: "Expose upsell amount correctly — return credit total minus exchange total (positive value; downsell returns 0), instead of the current hard-coded $0.00", owner: "Will Schaefermeyer" },
+      { t: "Expose the $7 handling fee in a dedicated field, and separate return total (pre-fee) from refund (post-fee). Note: exchanges no longer incur the handling fee; pure refunds still do", owner: "Will Schaefermeyer" },
+      { t: "Split product value from tax on return items to match Loop's structure", owner: "Will Schaefermeyer" },
+      { t: "Expose per-item tax on exchange SKUs (currently omitted for multi-item exchanges)", owner: "Will Schaefermeyer" },
+      { t: "Expose per-item refund amounts on return line items (currently returning zeros)", owner: "Will Schaefermeyer" },
+      { t: "Return structured reason data in the API — primary + secondary reason plus optional note (matches the fixed reasons now configured in Redo)", owner: "Will Schaefermeyer" },
+      { t: "Surface CS manual adjustments in a separate field, like a discount, so they don't cause Southware errors", owner: "Will Schaefermeyer" },
+      { t: "Roll out the API changes without disrupting the existing Loop-compatible integration", owner: "Will Schaefermeyer / Jordan Bleak" },
+      { t: "Adjust the exchange order number in Southware so the Shopify exchange method can be used (parse the original order number from the auto-generated order note), avoiding the Stripe-method issues on Loop today", owner: "Ping Bu" },
+      { t: "Ongoing: test each field correction and confirm results with Will via Slack", owner: "Ping Bu & Will Schaefermeyer" },
+      { t: "Integrations sign-off confirmed by Ping Bu", owner: "Ping Bu", due: "by Jul 8" }
+    ],
+    note: "API fixes owned by Redo engineering (Will), with Ping validating on Hobo's side. Targeting completion by July 8."
+  },
+  {
+    key: "portal", kind: "phase", step: "Track B — Parallel", title: "Portal",
+    objective: "Confirm the customer return experience, return flow, and store configuration with Hobo's eCommerce leadership. Several items below were configured in Redo on June 30 based on the Ping and Carole calls and are ready for review. Runs in parallel with Integrations; target completion July 8.",
+    meta: [
+      { label: "Hobo Owner", value: "Carole Van Over <span class='sub'>— runs point</span>", sub: "Andrew Greenberg — final sign-off · Bridget Francis — kept informed" },
+      { label: "Redo Owner", value: "Hugh Roberts", sub: "" },
+      { label: "Target", value: "<span class='date'>July 8, 2026</span> <span class='sub'>— in parallel with Integrations</span>" }
+    ],
+    items: [
+      { t: "Return reasons switched from AI-detected to fixed primary + secondary reasons matching Loop, with an optional \"additional notes\" prompt", owner: "Hugh Roberts", done: true },
+      { t: "One exchange per item — repeat exchanges on an already-exchanged item are now rejected", owner: "Hugh Roberts", done: true },
+      { t: "Shop-on-site for exchanges — customers who opt out of the exchange suggestion are redirected to the site, with a banner showing their available credit", owner: "Hugh Roberts", done: true },
+      { t: "Discount carry-over — original-order discounts now carry to the exchange order automatically (expired codes recreated with a \"-RETURN\" suffix; app-generated codes recreated in Shopify)", owner: "Hugh Roberts", done: true },
+      { t: "CS return-value tools — manual adjustment and manually applying the old discount code, with a Loom walkthrough shared to the team", owner: "Hugh Roberts", done: true },
+      { t: "Confirm the discount auto-apply behavior for exchanges and report any issues found in testing", owner: "Carole Van Over / Ping Bu", due: "by Jul 8" },
+      { t: "Confirm reporting setup, with the Annapolis retail store filtered out of e-commerce data", owner: "Bridget Francis / Hugh Roberts", due: "by Jul 8" },
+      { t: "Confirm returns portal branding matches the Hobo storefront", owner: "Carole Van Over", due: "by Jul 8" },
+      { t: "Review the parallel-run plan (Loop + Redo for 2–3 weeks post-launch)", owner: "Carole Van Over / Andrew Greenberg", due: "by Jul 8" },
+      { t: "Portal sign-off confirmed by Andrew Greenberg", owner: "Andrew Greenberg", due: "by Jul 8" }
+    ],
+    note: "Carole runs point on this phase; Andrew holds final sign-off; Bridget is kept informed without needing granular approvals. Targeting completion by July 8."
+  },
+  {
+    key: "sync", kind: "sync", step: "Milestone", title: "Team Sync — Readiness Check",
+    objective: "Whole-team sync to confirm both parallel tracks are complete and signed off, and to lock the plan for launch. Held Wednesday, July 8.",
+    meta: [
+      { label: "Hobo", value: "Andrew Greenberg, Carole Van Over, Ping Bu", sub: "" },
+      { label: "Redo", value: "Hugh Roberts, Alexis Smith, Will Schaefermeyer", sub: "" },
+      { label: "Date", value: "<span class='date'>Wednesday, July 8, 2026</span>" }
+    ],
+    items: [
+      { t: "Confirm Integrations track is signed off — API fixes tested and validated", owner: "Ping Bu / Will Schaefermeyer" },
+      { t: "Confirm Portal track is signed off — return experience approved", owner: "Andrew Greenberg / Carole Van Over" },
+      { t: "Review any outstanding test results and confirm no open blockers", owner: "Full team" },
+      { t: "Confirm the CX training plan and schedule for July 10", owner: "Carole Van Over / Alexis Smith" },
+      { t: "Lock the go-live date and the parallel-run plan", owner: "Hugh Roberts / Andrew Greenberg" }
+    ],
+    note: "This is the gate between the parallel build phases and CX training — both tracks must be green to proceed."
+  },
+  {
+    key: "cx", kind: "phase", step: "Phase 3", title: "CX Training",
+    objective: "Train the teams who run returns day to day — customer service and the warehouse — so they are ready for live volume on Redo from day one, including how returns flow into Southware. Held July 10, after the team sync.",
+    meta: [
+      { label: "Hobo Owner", value: "Carole Van Over <span class='sub'>— CS Manager</span>", sub: "CS: Alexa Saclao, Heidi Ramirez · Warehouse: Sabrina, Deanna" },
+      { label: "Redo Owner", value: "Alexis Smith", sub: "Hugh Roberts — support" },
+      { label: "Target", value: "<span class='date'>July 10, 2026</span>" }
+    ],
+    items: [
+      { t: "Customer service team trained on the Redo returns workflow", owner: "Alexis Smith", done: true },
+      { t: "CS walkthrough of the return-value adjustment tools shared (Loom)", owner: "Hugh Roberts", done: true },
+      { t: "Gather real return scenarios and questions from CS agents (and Sabrina in the warehouse) to use in training and testing", owner: "Carole Van Over", due: "by Jul 10" },
+      { t: "Warehouse / returns-processing training, including the Southware return-entry workflow", owner: "Alexis Smith", due: "Jul 10" },
+      { t: "Include a CS agent in scenario testing to surface real edge cases", owner: "Carole Van Over", due: "Jul 10" },
+      { t: "Share the escalation path and support contacts with both teams", owner: "Alexis Smith", due: "Jul 10" },
+      { t: "CX readiness sign-off confirmed by Carole Van Over", owner: "Carole Van Over", due: "Jul 10" }
+    ],
+    note: "CX training follows the July 8 team sync, once both parallel tracks are confirmed ready."
+  }
+];
+
+const flowEl = document.getElementById("flow");
+const panelEl = document.getElementById("panel");
+let current = 0;
+
+flowEl.querySelectorAll(".node-card").forEach(btn => {
+  btn.addEventListener("click", () => select(+btn.dataset.idx));
+});
+
+function select(i) {
+  current = i;
+  flowEl.querySelectorAll(".node-card").forEach(n => n.classList.toggle("active", +n.dataset.idx === i));
+  const p = phases[i];
+  const isSync = p.kind === "sync";
+  const meta = p.meta.map(m =>
+    `<div class="meta-cell"><div class="meta-label">${m.label}</div>` +
+    `<div class="meta-value">${m.value}${m.sub ? `<br><span class="sub">${m.sub}</span>` : ""}</div></div>`
+  ).join("");
+  const items = p.items.map((it, idx) => {
+    let badge = "";
+    if (it.done) badge = `<span class="badge done">Done</span>`;
+    else if (it.due) badge = `<span class="badge due">${it.due}</span>`;
+    else if (it.tbd) badge = `<span class="badge tbd">TBD</span>`;
+    return `<li><span class="check-box ${it.done ? "done" : ""}" data-i="${idx}" role="checkbox" aria-checked="${it.done ? "true" : "false"}" title="Click to toggle"></span>` +
+      `<div>${it.t}${badge}<br><span class="item-owner">Owner: ${it.owner}</span></div></li>`;
+  }).join("");
+  panelEl.innerHTML =
+    `<div class="panel${isSync ? " sync" : ""}">` +
+      `<div class="panel-head"><span class="panel-step">${p.step}</span><h3>${p.title}</h3></div>` +
+      `<p class="panel-objective">${p.objective}</p>` +
+      `<div class="panel-meta">${meta}</div>` +
+      `<div class="checklist-wrap"><div class="checklist-label">${isSync ? "Agenda &amp; confirmations" : "Items to cover &amp; owners"}</div>` +
+        `<ul class="checklist">${items}</ul></div>` +
+      `<p class="panel-note">${p.note}</p>` +
+    `</div>`;
+  panelEl.querySelectorAll(".check-box").forEach(box => {
+    box.addEventListener("click", () => {
+      const it = phases[current].items[+box.dataset.i];
+      it.done = !it.done;
+      select(current);
+    });
+  });
+}
+
+select(0);
+</script>
+</body>
+</html>
