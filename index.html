@@ -91,6 +91,7 @@
   .nc-status.progress { background: var(--progress-bg); color: var(--progress-text); }
   .nc-status.complete { background: var(--green-bg); color: var(--green-text); }
   .nc-status.milestone { background: var(--blue-bg); color: var(--progress-text); }
+  .nc-status.scheduled { background: var(--pending-bg); color: var(--pending-text); }
 
   .sync-card { border-color: var(--blue); background: #FBFEFF; }
   .sync-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(8,138,178,.14); }
@@ -179,26 +180,33 @@
     <!-- Interactive flow -->
     <div class="flow" id="flow">
       <div class="parallel-box">
-        <span class="parallel-tag">In parallel · by Jul 8</span>
+        <span class="parallel-tag">In parallel · sign-off Jul 7</span>
         <button class="node-card active" data-idx="0">
-          <div class="nc-top"><span class="nc-title">Integrations</span><span class="nc-date">by Jul 8</span></div>
+          <div class="nc-top"><span class="nc-title">Integrations</span><span class="nc-date">Sign-off Jul 7</span></div>
           <span class="nc-status progress">In Progress</span>
         </button>
         <button class="node-card" data-idx="1">
-          <div class="nc-top"><span class="nc-title">Portal</span><span class="nc-date">by Jul 8</span></div>
+          <div class="nc-top"><span class="nc-title">Portal</span><span class="nc-date">Sign-off Jul 7</span></div>
           <span class="nc-status progress">In Progress</span>
         </button>
       </div>
       <span class="arrow">&rarr;</span>
       <button class="node-card sync-card" data-idx="2">
-        <div class="nc-top"><span class="nc-title">Team Sync</span><span class="nc-date">Wed, Jul 8</span></div>
-        <span class="nc-status milestone">Readiness Check</span>
+        <div class="nc-top"><span class="nc-title">Andrew + Team Review</span><span class="nc-date">Wed, Jul 8</span></div>
+        <span class="nc-status milestone">Final Sign-Off</span>
       </button>
       <span class="arrow">&rarr;</span>
-      <button class="node-card" data-idx="3">
-        <div class="nc-top"><span class="nc-title">CX Training</span><span class="nc-date">Jul 10</span></div>
-        <span class="nc-status progress">In Progress</span>
-      </button>
+      <div class="parallel-box">
+        <span class="parallel-tag">Training · Jul 10</span>
+        <button class="node-card" data-idx="3">
+          <div class="nc-top"><span class="nc-title">CS Team</span><span class="nc-date">Jul 10</span></div>
+          <span class="nc-status scheduled">Scheduled</span>
+        </button>
+        <button class="node-card" data-idx="4">
+          <div class="nc-top"><span class="nc-title">Warehouse Team</span><span class="nc-date">Jul 10</span></div>
+          <span class="nc-status scheduled">Scheduled</span>
+        </button>
+      </div>
     </div>
     <p class="flow-hint">Select any phase to see its items and owners.</p>
 
@@ -213,12 +221,13 @@
       <table>
         <thead><tr><th>Milestone</th><th>Phase</th><th>Owner(s)</th><th>Date</th></tr></thead>
         <tbody>
-          <tr><td><strong>CS Training</strong></td><td class="secondary">CX Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td>Completed June 17</td></tr>
           <tr><td><strong>Ping ↔ Redo API working session</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu / Will Schaefermeyer</td><td>Completed June 30</td></tr>
-          <tr><td><strong>Integrations complete</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu / Will Schaefermeyer</td><td><strong>July 8</strong></td></tr>
-          <tr><td><strong>Portal complete</strong></td><td class="secondary">Portal</td><td class="secondary">Carole Van Over / Andrew Greenberg</td><td><strong>July 8</strong></td></tr>
-          <tr><td><strong>Team Sync — readiness check</strong></td><td class="secondary">All</td><td class="secondary">Full team</td><td style="color:var(--blue);font-weight:600;">Wed, July 8</td></tr>
-          <tr><td><strong>CX Training</strong></td><td class="secondary">CX Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
+          <tr><td><strong>Integration sign-off meeting</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu, Hugh Roberts, Will Schaefermeyer</td><td><strong>July 7</strong></td></tr>
+          <tr><td><strong>Portal sign-off meeting</strong></td><td class="secondary">Portal</td><td class="secondary">Carole Van Over, Hugh Roberts, Alexis Smith</td><td><strong>July 7</strong></td></tr>
+          <tr><td><strong>Andrew + Team Review</strong></td><td class="secondary">All</td><td class="secondary">Full team + Andrew Greenberg</td><td style="color:var(--blue);font-weight:600;">Wed, July 8</td></tr>
+          <tr><td><strong>Warehouse application tweak</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu</td><td>July 8–9</td></tr>
+          <tr><td><strong>CS Team Training</strong></td><td class="secondary">Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
+          <tr><td><strong>Warehouse Team Training</strong></td><td class="secondary">Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
           <tr class="highlight-row"><td><strong>Revised Go-Live</strong></td><td class="secondary">Post-training</td><td class="secondary">Redo + Hobo</td><td><span style="color:var(--tbd-text);font-weight:600;">TBD on team sync July 8</span></td></tr>
           <tr><td><strong>Parallel Run (Loop + Redo)</strong></td><td class="secondary">Post-launch</td><td class="secondary">Carole Van Over / Alexis Smith</td><td>2–3 weeks after go-live</td></tr>
           <tr><td><strong>Loop Contract Sunset</strong></td><td class="secondary">Final cutover</td><td class="secondary">Hobo</td><td>August 1</td></tr>
@@ -234,11 +243,11 @@
 const phases = [
   {
     key: "integrations", kind: "phase", step: "Track A — Parallel", title: "Integrations", panelStatus: "",
-    objective: "Align Redo's Loop-compatible API with Hobo's existing integration so returns, exchanges, upsells, and downsells map cleanly into Southware. The field-level adjustments below were scoped in the June 30 working session with Ping and are owned by Redo engineering. Runs in parallel with Portal; target completion July 8.",
+    objective: "Align Redo's Loop-compatible API with Hobo's existing integration so returns, exchanges, upsells, and downsells map cleanly into Southware. The field-level adjustments below were scoped in the June 30 working session with Ping and are owned by Redo engineering. A dedicated integration sign-off meeting (Ping, Hugh, Will) is set for July 7 — pulled a day earlier so Ping has runway to tweak the warehouse return application before training on the 10th.",
     meta: [
       { label: "Hobo Owner", value: "Ping Bu <span class='sub'>— IT Developer</span>", sub: "Jon Stinnett — IT (support)" },
       { label: "Redo Owner", value: "Will Schaefermeyer <span class='sub'>— Engineering</span>", sub: "Jordan Bleak / Hugh Roberts — coordination" },
-      { label: "Target", value: "<span class='date'>July 8, 2026</span> <span class='sub'>— in parallel with Portal</span>" }
+      { label: "Sign-Off", value: "<span class='date'>July 7, 2026</span> <span class='sub'>— dedicated meeting: Ping, Hugh, Will</span>" }
     ],
     items: [
       { t: "API key provisioned and schema confirmed compatible", owner: "Ping Bu & Will Schaefermeyer", done: true },
@@ -254,17 +263,18 @@ const phases = [
       { t: "Roll out the API changes without disrupting the existing Loop-compatible integration", owner: "Will Schaefermeyer / Jordan Bleak" },
       { t: "Adjust the exchange order number in Southware so the Shopify exchange method can be used (parse the original order number from the auto-generated order note), avoiding the Stripe-method issues on Loop today", owner: "Ping Bu" },
       { t: "Ongoing: test each field correction and confirm results with Will via Slack", owner: "Ping Bu & Will Schaefermeyer" },
-      { t: "Integrations sign-off confirmed by Ping Bu", owner: "Ping Bu", due: "by Jul 8" }
+      { t: "Integration sign-off meeting — confirm API is validated and ready", owner: "Ping Bu, Hugh Roberts, Will Schaefermeyer", due: "Jul 7" },
+      { t: "After sign-off, Ping tweaks the warehouse return application (extra step on Hobo's side, required before warehouse training)", owner: "Ping Bu", due: "Jul 8–9" }
     ],
-    note: "API fixes owned by Redo engineering (Will), with Ping validating on Hobo's side. Targeting completion by July 8."
+    note: "Finishing the Loop-compatible API fixes is the critical-path bottleneck — Hugh is confirming with Will they can land by July 6–7. Sign-off is pulled to July 7 so Ping has July 8–9 to adjust the warehouse return application before training on the 10th."
   },
   {
     key: "portal", kind: "phase", step: "Track B — Parallel", title: "Portal",
-    objective: "Confirm the customer return experience, return flow, and store configuration with Hobo's eCommerce leadership. Several items below were configured in Redo on June 30 based on the Ping and Carole calls and are ready for review. Runs in parallel with Integrations; target completion July 8.",
+    objective: "Confirm the customer return experience, return flow, and store configuration with Hobo's eCommerce leadership. Several items below were configured in Redo on June 30 based on the Ping and Carole calls and are ready for review. A dedicated portal sign-off meeting (Carole, Hugh, Alexis) is set for July 7; Andrew gives final sign-off at the July 8 review.",
     meta: [
       { label: "Hobo Owner", value: "Carole Van Over <span class='sub'>— runs point</span>", sub: "Andrew Greenberg — final sign-off · Bridget Francis — kept informed" },
-      { label: "Redo Owner", value: "Hugh Roberts", sub: "" },
-      { label: "Target", value: "<span class='date'>July 8, 2026</span> <span class='sub'>— in parallel with Integrations</span>" }
+      { label: "Redo Owner", value: "Hugh Roberts", sub: "Alexis Smith — support" },
+      { label: "Sign-Off", value: "<span class='date'>July 7, 2026</span> <span class='sub'>— dedicated meeting: Carole, Hugh, Alexis</span>" }
     ],
     items: [
       { t: "Return reasons switched from AI-detected to fixed primary + secondary reasons matching Loop, with an optional \"additional notes\" prompt", owner: "Hugh Roberts", done: true },
@@ -272,49 +282,62 @@ const phases = [
       { t: "Shop-on-site for exchanges — customers who opt out of the exchange suggestion are redirected to the site, with a banner showing their available credit", owner: "Hugh Roberts", done: true },
       { t: "Discount carry-over — original-order discounts now carry to the exchange order automatically (expired codes recreated with a \"-RETURN\" suffix; app-generated codes recreated in Shopify)", owner: "Hugh Roberts", done: true },
       { t: "CS return-value tools — manual adjustment and manually applying the old discount code, with a Loom walkthrough shared to the team", owner: "Hugh Roberts", done: true },
-      { t: "Confirm the discount auto-apply behavior for exchanges and report any issues found in testing", owner: "Carole Van Over / Ping Bu", due: "by Jul 8" },
-      { t: "Confirm reporting setup, with the Annapolis retail store filtered out of e-commerce data", owner: "Bridget Francis / Hugh Roberts", due: "by Jul 8" },
-      { t: "Confirm returns portal branding matches the Hobo storefront", owner: "Carole Van Over", due: "by Jul 8" },
-      { t: "Review the parallel-run plan (Loop + Redo for 2–3 weeks post-launch)", owner: "Carole Van Over / Andrew Greenberg", due: "by Jul 8" },
-      { t: "Portal sign-off confirmed by Andrew Greenberg", owner: "Andrew Greenberg", due: "by Jul 8" }
+      { t: "Confirm the discount auto-apply behavior for exchanges and report any issues found in testing", owner: "Carole Van Over / Ping Bu", due: "by Jul 7" },
+      { t: "Confirm reporting setup, with the Annapolis retail store filtered out of e-commerce data", owner: "Bridget Francis / Hugh Roberts", due: "by Jul 7" },
+      { t: "Confirm returns portal branding matches the Hobo storefront", owner: "Carole Van Over", due: "by Jul 7" },
+      { t: "Review the parallel-run plan (Loop + Redo for 2–3 weeks post-launch)", owner: "Carole Van Over / Andrew Greenberg", due: "by Jul 7" },
+      { t: "Portal sign-off meeting — confirm the return experience is ready", owner: "Carole Van Over, Hugh Roberts, Alexis Smith", due: "Jul 7" }
     ],
-    note: "Carole runs point on this phase; Andrew holds final sign-off; Bridget is kept informed without needing granular approvals. Targeting completion by July 8."
+    note: "Carole runs point on this phase; the portal sign-off meeting is July 7, and Andrew gives final sign-off at the July 8 review. Bridget is kept informed without needing granular approvals."
   },
   {
-    key: "sync", kind: "sync", step: "Milestone", title: "Team Sync — Readiness Check",
-    objective: "Whole-team sync to confirm both parallel tracks are complete and signed off, and to lock the plan for launch. Held Wednesday, July 8.",
+    key: "sync", kind: "sync", step: "Milestone", title: "Andrew + Team Review",
+    objective: "Whole team reports back to Andrew that everything is ready to go and walks him through the final workflow and UI/UX. Andrew gives his sign-off before rollout to the broader team. Held Wednesday, July 8, after both tracks have signed off on July 7.",
     meta: [
       { label: "Hobo", value: "Andrew Greenberg, Carole Van Over, Ping Bu", sub: "" },
       { label: "Redo", value: "Hugh Roberts, Alexis Smith, Will Schaefermeyer", sub: "" },
       { label: "Date", value: "<span class='date'>Wednesday, July 8, 2026</span>" }
     ],
     items: [
-      { t: "Confirm Integrations track is signed off — API fixes tested and validated", owner: "Ping Bu / Will Schaefermeyer" },
-      { t: "Confirm Portal track is signed off — return experience approved", owner: "Andrew Greenberg / Carole Van Over" },
-      { t: "Review any outstanding test results and confirm no open blockers", owner: "Full team" },
-      { t: "Confirm the CX training plan and schedule for July 10", owner: "Carole Van Over / Alexis Smith" },
-      { t: "Lock the go-live date and the parallel-run plan", owner: "Hugh Roberts / Andrew Greenberg" }
+      { t: "Confirm integration readiness" },
+      { t: "Confirm portal readiness" },
+      { t: "Demo the full flow" }
     ],
-    note: "This is the gate between the parallel build phases and CX training — both tracks must be green to proceed."
+    note: "This is the gate before rollout — Andrew's sign-off here green-lights training and go-live."
   },
   {
-    key: "cx", kind: "phase", step: "Phase 3", title: "CX Training",
-    objective: "Train the teams who run returns day to day — customer service and the warehouse — so they are ready for live volume on Redo from day one, including how returns flow into Southware. Held July 10, after the team sync.",
+    key: "cs", kind: "phase", step: "Training — Jul 10", title: "CS Team Training",
+    objective: "Full end-to-end training for the customer service team on the Redo returns workflow, with written and video documentation to reference and to onboard future team members. No CS training has happened yet — it was held until the platform was ready.",
     meta: [
-      { label: "Hobo Owner", value: "Carole Van Over <span class='sub'>— CS Manager</span>", sub: "CS: Alexa Saclao, Heidi Ramirez · Warehouse: Sabrina, Deanna" },
-      { label: "Redo Owner", value: "Alexis Smith", sub: "Hugh Roberts — support" },
-      { label: "Target", value: "<span class='date'>July 10, 2026</span>" }
+      { label: "Hobo Team", value: "Carole Van Over <span class='sub'>— CS Manager</span>", sub: "Alexa Saclao, Heidi Ramirez" },
+      { label: "Led By", value: "Alexis Smith", sub: "Hugh Roberts — support" },
+      { label: "Date", value: "<span class='date'>July 10, 2026</span>" }
     ],
     items: [
-      { t: "Customer service team trained on the Redo returns workflow", owner: "Alexis Smith", done: true },
-      { t: "CS walkthrough of the return-value adjustment tools shared (Loom)", owner: "Hugh Roberts", done: true },
-      { t: "Gather real return scenarios and questions from CS agents (and Sabrina in the warehouse) to use in training and testing", owner: "Carole Van Over", due: "by Jul 10" },
-      { t: "Warehouse / returns-processing training, including the Southware return-entry workflow", owner: "Alexis Smith", due: "Jul 10" },
-      { t: "Include a CS agent in scenario testing to surface real edge cases", owner: "Carole Van Over", due: "Jul 10" },
-      { t: "Share the escalation path and support contacts with both teams", owner: "Alexis Smith", due: "Jul 10" },
-      { t: "CX readiness sign-off confirmed by Carole Van Over", owner: "Carole Van Over", due: "Jul 10" }
+      { t: "Portal" },
+      { t: "Labels" },
+      { t: "Integrations" },
+      { t: "Common exceptions" },
+      { t: "Exchanges" }
     ],
-    note: "CX training follows the July 8 team sync, once both parallel tracks are confirmed ready."
+    note: "Includes written and video documentation for reference and future team members."
+  },
+  {
+    key: "warehouse", kind: "phase", step: "Training — Jul 10", title: "Warehouse Team Training",
+    objective: "Full end-to-end training for the warehouse team on processing returns in Redo and the return application, with written and video documentation for reference and future team members. Timed to follow Ping's warehouse application tweak (July 8–9).",
+    meta: [
+      { label: "Hobo Team", value: "Carole Van Over <span class='sub'>— oversees</span>", sub: "Warehouse: Sabrina, Deanna" },
+      { label: "Led By", value: "Alexis Smith", sub: "Hugh Roberts — support" },
+      { label: "Date", value: "<span class='date'>July 10, 2026</span> <span class='sub'>— after Ping's app tweak</span>" }
+    ],
+    items: [
+      { t: "Portal" },
+      { t: "Labels" },
+      { t: "Integrations" },
+      { t: "Common exceptions" },
+      { t: "Exchanges" }
+    ],
+    note: "Depends on Ping completing the warehouse application tweak (July 8–9). Includes written and video documentation for reference and future team members."
   }
 ];
 
@@ -340,8 +363,9 @@ function select(i) {
     if (it.done) badge = `<span class="badge done">Done</span>`;
     else if (it.due) badge = `<span class="badge due">${it.due}</span>`;
     else if (it.tbd) badge = `<span class="badge tbd">TBD</span>`;
+    const ownerLine = it.owner ? `<br><span class="item-owner">Owner: ${it.owner}</span>` : "";
     return `<li><span class="check-box ${it.done ? "done" : ""}" data-i="${idx}" role="checkbox" aria-checked="${it.done ? "true" : "false"}" title="Click to toggle"></span>` +
-      `<div>${it.t}${badge}<br><span class="item-owner">Owner: ${it.owner}</span></div></li>`;
+      `<div>${it.t}${badge}${ownerLine}</div></li>`;
   }).join("");
   panelEl.innerHTML =
     `<div class="panel${isSync ? " sync" : ""}">` +
