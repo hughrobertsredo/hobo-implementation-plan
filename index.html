@@ -97,6 +97,13 @@
   .sync-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(8,138,178,.14); }
   .sync-card .nc-title { color: var(--blue); }
 
+  .nc-status.target { background: var(--green-bg); color: var(--green-text); }
+  .golive-card { border-color: var(--green-text); background: #F6FBF7; }
+  .golive-card.active { border-color: var(--green-text); box-shadow: 0 0 0 3px rgba(30,107,63,.16); }
+  .golive-card .nc-title { color: var(--green-text); }
+  .panel.golive { border-top-color: var(--green-text); }
+  .panel.golive .panel-step { background: var(--green-text); }
+
   .arrow { color: #C9C7C1; font-size: 1.7rem; padding: 0 10px; flex-shrink: 0; line-height: 1; }
 
   .flow-hint {
@@ -207,6 +214,11 @@
           <span class="nc-status scheduled">Scheduled</span>
         </button>
       </div>
+      <span class="arrow">&rarr;</span>
+      <button class="node-card golive-card" data-idx="5">
+        <div class="nc-top"><span class="nc-title">Go-Live</span><span class="nc-date">TBD on Jul 8</span></div>
+        <span class="nc-status target">Target Jul 10</span>
+      </button>
     </div>
     <p class="flow-hint">Select any phase to see its items and owners.</p>
 
@@ -228,7 +240,7 @@
           <tr><td><strong>Warehouse application tweak</strong></td><td class="secondary">Integrations</td><td class="secondary">Ping Bu</td><td>July 8–9</td></tr>
           <tr><td><strong>CS Team Training</strong></td><td class="secondary">Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
           <tr><td><strong>Warehouse Team Training</strong></td><td class="secondary">Training</td><td class="secondary">Alexis Smith / Carole Van Over</td><td><strong>July 10</strong></td></tr>
-          <tr class="highlight-row"><td><strong>Revised Go-Live</strong></td><td class="secondary">Post-training</td><td class="secondary">Redo + Hobo</td><td><span style="color:var(--tbd-text);font-weight:600;">TBD on team sync July 8</span></td></tr>
+          <tr class="highlight-row"><td><strong>Revised Go-Live</strong></td><td class="secondary">Post-training</td><td class="secondary">Redo + Hobo</td><td><span style="color:var(--tbd-text);font-weight:600;">TBD on team sync July 8</span> <span class="secondary">· target Jul 10</span></td></tr>
           <tr><td><strong>Parallel Run (Loop + Redo)</strong></td><td class="secondary">Post-launch</td><td class="secondary">Carole Van Over / Alexis Smith</td><td>2–3 weeks after go-live</td></tr>
           <tr><td><strong>Loop Contract Sunset</strong></td><td class="secondary">Final cutover</td><td class="secondary">Hobo</td><td>August 1</td></tr>
         </tbody>
@@ -338,6 +350,22 @@ const phases = [
       { t: "Exchanges" }
     ],
     note: "Depends on Ping completing the warehouse application tweak (July 8–9). Includes written and video documentation for reference and future team members."
+  },
+  {
+    key: "golive", kind: "golive", step: "Launch", title: "Go-Live",
+    objective: "The official go-live date is confirmed at the July 8 review. Based on the current plan — trainings on July 10 — the working target is to go live on July 10, running Loop and Redo in parallel for 2–3 weeks before the Loop sunset on August 1.",
+    meta: [
+      { label: "Owners", value: "Redo + Hobo", sub: "" },
+      { label: "Confirmed On", value: "<span class='date'>July 8, 2026</span> <span class='sub'>— at the team review</span>" },
+      { label: "Working Target", value: "<span class='date'>July 10, 2026</span> <span class='sub'>— after trainings, pending sign-off</span>" }
+    ],
+    items: [
+      { t: "Confirm the official go-live date at the July 8 review", owner: "Hugh Roberts / Andrew Greenberg" },
+      { t: "Go live — working target July 10, once CS and warehouse trainings are done", owner: "Redo + Hobo" },
+      { t: "Run Loop + Redo in parallel for 2–3 weeks", owner: "Carole Van Over / Alexis Smith" },
+      { t: "Loop contract sunset", owner: "Hobo", due: "Aug 1" }
+    ],
+    note: "Officially TBD until the July 8 review; the working target is July 10 once both trainings are complete."
   }
 ];
 
@@ -354,6 +382,8 @@ function select(i) {
   flowEl.querySelectorAll(".node-card").forEach(n => n.classList.toggle("active", +n.dataset.idx === i));
   const p = phases[i];
   const isSync = p.kind === "sync";
+  const panelClass = p.kind === "sync" ? " sync" : p.kind === "golive" ? " golive" : "";
+  const listLabel = isSync ? "Agenda &amp; confirmations" : p.kind === "golive" ? "Launch steps" : "Items to cover &amp; owners";
   const meta = p.meta.map(m =>
     `<div class="meta-cell"><div class="meta-label">${m.label}</div>` +
     `<div class="meta-value">${m.value}${m.sub ? `<br><span class="sub">${m.sub}</span>` : ""}</div></div>`
@@ -368,11 +398,11 @@ function select(i) {
       `<div>${it.t}${badge}${ownerLine}</div></li>`;
   }).join("");
   panelEl.innerHTML =
-    `<div class="panel${isSync ? " sync" : ""}">` +
+    `<div class="panel${panelClass}">` +
       `<div class="panel-head"><span class="panel-step">${p.step}</span><h3>${p.title}</h3></div>` +
       `<p class="panel-objective">${p.objective}</p>` +
       `<div class="panel-meta">${meta}</div>` +
-      `<div class="checklist-wrap"><div class="checklist-label">${isSync ? "Agenda &amp; confirmations" : "Items to cover &amp; owners"}</div>` +
+      `<div class="checklist-wrap"><div class="checklist-label">${listLabel}</div>` +
         `<ul class="checklist">${items}</ul></div>` +
       `<p class="panel-note">${p.note}</p>` +
     `</div>`;
