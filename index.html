@@ -152,6 +152,15 @@
   .badge.due { background: var(--blue-bg); color: var(--progress-text); }
   .panel-note { padding: 0 32px 28px; font-size: 0.8125rem; color: var(--text-secondary); font-style: italic; }
 
+  /* ---- Reset control ---- */
+  .reset-row { display: flex; justify-content: flex-end; padding: 0 32px 20px; }
+  .reset-btn {
+    background: transparent; border: 1px solid var(--divider); color: var(--text-secondary);
+    font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer; transition: border-color .15s ease, color .15s ease;
+  }
+  .reset-btn:hover { border-color: var(--orange); color: var(--orange); }
+
   /* ---- Reference table ---- */
   .table-wrapper { background: var(--surface-bg); margin-bottom: 8px; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
@@ -184,7 +193,6 @@
   </header>
 
   <section class="section">
-    <!-- Interactive flow -->
     <div class="flow" id="flow">
       <div class="parallel-box">
         <span class="parallel-tag">In parallel · sign-off Jul 7</span>
@@ -220,12 +228,11 @@
         <span class="nc-status target">Target Jul 10</span>
       </button>
     </div>
-    <p class="flow-hint">Select any phase to see its items and owners.</p>
+    <p class="flow-hint">Select any phase to see its items and owners. Checkbox state is saved to this browser.</p>
 
     <div id="panel"></div>
   </section>
 
-  <!-- Reference table -->
   <section class="section">
     <span class="section-number">Reference</span>
     <h2>Key Dates</h2>
@@ -252,6 +259,8 @@
 </div>
 
 <script>
+const STORAGE_KEY = 'hobo-implementation-plan-v1';
+
 const phases = [
   {
     key: "integrations", kind: "phase", step: "Track A — Parallel", title: "Integrations", panelStatus: "",
@@ -273,7 +282,7 @@ const phases = [
       { t: "Return structured reason data in the API — primary + secondary reason plus optional note (matches the fixed reasons now configured in Redo)", owner: "Will Schaefermeyer" },
       { t: "Surface CS manual adjustments in a separate field, like a discount, so they don't cause Southware errors", owner: "Will Schaefermeyer" },
       { t: "Roll out the API changes without disrupting the existing Loop-compatible integration", owner: "Will Schaefermeyer / Jordan Bleak" },
-      { t: "Adjust the exchange order number in Southware so the Shopify exchange method can be used (parse the original order number from the auto-generated order note), avoiding the Stripe-method issues on Loop today", owner: "Ping Bu" },
+      { t: "Adjust the exchange order number in Southware so the Shopify exchange method can be used (parse the original order number from the auto-generated order note), avoiding the Stripe-method issues on Loop today", owner: "Ping Bu", done: true },
       { t: "Ongoing: test each field correction and confirm results with Will via Slack", owner: "Ping Bu & Will Schaefermeyer" },
       { t: "Integration sign-off meeting — confirm API is validated and ready", owner: "Ping Bu, Hugh Roberts, Will Schaefermeyer", due: "Jul 7" },
       { t: "After sign-off, Ping tweaks the warehouse return application (extra step on Hobo's side, required before warehouse training)", owner: "Ping Bu", due: "Jul 8–9" }
@@ -369,6 +378,32 @@ const phases = [
   }
 ];
 
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    phases.forEach(p => {
+      const phaseState = saved[p.key];
+      if (!phaseState) return;
+      p.items.forEach((it, i) => {
+        if (typeof phaseState[i] === 'boolean') it.done = phaseState[i];
+      });
+    });
+  } catch (e) {}
+}
+
+function saveState() {
+  const state = {};
+  phases.forEach(p => {
+    state[p.key] = p.items.map(it => !!it.done);
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function resetState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  location.reload();
+}
+
 const flowEl = document.getElementById("flow");
 const panelEl = document.getElementById("panel");
 let current = 0;
@@ -404,17 +439,24 @@ function select(i) {
       `<div class="panel-meta">${meta}</div>` +
       `<div class="checklist-wrap"><div class="checklist-label">${listLabel}</div>` +
         `<ul class="checklist">${items}</ul></div>` +
+      `<div class="reset-row"><button class="reset-btn" id="reset-btn" title="Clear all saved checkbox state in this browser">Reset checkboxes</button></div>` +
       `<p class="panel-note">${p.note}</p>` +
     `</div>`;
   panelEl.querySelectorAll(".check-box").forEach(box => {
     box.addEventListener("click", () => {
       const it = phases[current].items[+box.dataset.i];
       it.done = !it.done;
+      saveState();
       select(current);
     });
   });
+  const resetBtn = panelEl.querySelector("#reset-btn");
+  if (resetBtn) resetBtn.addEventListener("click", () => {
+    if (confirm("Clear all saved checkbox state in this browser?")) resetState();
+  });
 }
 
+loadState();
 select(0);
 </script>
 </body>
